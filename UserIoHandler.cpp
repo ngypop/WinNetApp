@@ -12,30 +12,41 @@ using namespace std;
 
 UserIoHandler::UserIoHandler()
 {
-	cout << "UserIoHandler created\n";
+	shutdown = false;
 }
 
 void UserIoHandler::userIoThread()
 {
-	int a = 0;
-
-	while(a < 5)
+	cout << "Type 'help' for help!\n";
+	while(!shutdown)
 	{
-		cin >> a;
-		cout << a << "\n";
+		getNextCommand();
 	}
 }
 
-void UserIoHandler::launch()
+int UserIoHandler::launch()
 {
 	thread th (&UserIoHandler::userIoThread, this);
 	th.join();
+
+	return 0; // Later a proper return value can be implemented
 }
 
+void UserIoHandler::getNextCommand()
+{
+	string input;
+
+	cout << "WinNetApp> ";
+	getline(cin, input);
+
+	if(input.find("shutdown") == 0)
+	{
+		shutdown = true;
+	}
+}
 
 
 UserIoHandler::~UserIoHandler()
 {
-	cout << "UserIoHandler destroyed\n";
 }
 

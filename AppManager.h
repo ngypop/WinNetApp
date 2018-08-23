@@ -8,22 +8,23 @@
 #ifndef APPMANAGER_H_
 #define APPMANAGER_H_
 
+#include <string>
 #include "UserIoHandler.h"
+
+using namespace std;
 
 class AppManager {
 public:
 	AppManager();
 	virtual ~AppManager();
 
-	void shutdown(int _errorState);
-	bool isOver();
 	int getErrorState();
-	void launch();
+	void go();
 
 private:
-	bool over;
 	int errorState;
-	UserIoHandler* userIoHandler;
+	UserIoHandler *userIoHandler;
+	string version;
 };
 
 #endif /* APPMANAGER_H_ */

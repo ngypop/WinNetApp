@@ -15,10 +15,13 @@ class UserIoHandler
 public:
 	UserIoHandler();
 	virtual ~UserIoHandler();
-	void launch();
+	int launch();
 
 private:
 	void userIoThread();
+	void printWelcomeMessage();
+	void getNextCommand();
+	bool shutdown;
 };
 
 #endif /* USERIOHANDLER_H_ */

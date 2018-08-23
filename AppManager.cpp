@@ -15,32 +15,26 @@ int main()
 {
 	AppManager appManager;
 
-	//while(appManager.isOver() == false);
+	appManager.go();
 	
 	return appManager.getErrorState();
 }
 
 
-AppManager::AppManager()  // @suppress("Class members should be properly initialized")
+AppManager::AppManager()
 {
-	over          = false;
+	version ="0.1";
 	errorState    = -1;
 	userIoHandler = new UserIoHandler();
-	userIoHandler->launch(); // Returns when appManager is finished
-
-	cout << "AppManager created\n";
 }
 
-void AppManager::shutdown(int _errorState) // @suppress("Ambiguous problem")
+void AppManager::go()
 {
-	over       = true;
-	errorState = _errorState;
+	cout << "WinNetApp version " << version << "\n";
+	errorState = userIoHandler->launch(); // Returns when appManager is finished
+	cout << "Bye.\n";
 }
 
-bool AppManager::isOver()
-{
-	return over;
-}
 
 int AppManager::getErrorState()
 {
@@ -51,6 +45,5 @@ int AppManager::getErrorState()
 AppManager::~AppManager()
 {
 	delete userIoHandler;
-	cout << "AppManager destroyed\n";
 }
 
