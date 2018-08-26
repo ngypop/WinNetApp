@@ -8,16 +8,23 @@
 #include <iostream>
 #include "AppManager.h"
 #include "UserIoHandler.h"
+#include "DijkstraTest.h"
 
 using namespace std;
 
 int main()
 {
-	AppManager appManager;
+	DijkstraTest dijTest;
 
-	appManager.go();
-	
-	return appManager.getErrorState();
+	dijTest.testDijkstra();
+
+
+//	AppManager appManager;
+//
+//	appManager.go();
+//
+//	return appManager.getErrorState();
+	return 1;
 }
 
 
