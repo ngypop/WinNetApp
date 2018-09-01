@@ -13,6 +13,12 @@ using namespace std;
 UserIoHandler::UserIoHandler()
 {
 	shutdown = false;
+	activeService = 0;
+}
+
+void UserIoHandler::registerService(Service *_service)
+{
+	services.insert(make_pair(_service->getName(), _service));
 }
 
 void UserIoHandler::userIoThread()
@@ -20,7 +26,8 @@ void UserIoHandler::userIoThread()
 	cout << "Type 'help' for help!\n";
 	while(!shutdown)
 	{
-		getNextCommand();
+		handleCommandPrompt();
+
 	}
 }
 
@@ -32,21 +39,37 @@ int UserIoHandler::launch()
 	return 0; // Later a proper return value can be implemented
 }
 
-void UserIoHandler::getNextCommand()
+void UserIoHandler::handleCommandPrompt()
 {
 	string input;
+	map<string, Service*>::iterator iter;
 
-	cout << "WinNetApp> ";
+	if(activeService == 0)
+	{
+		cout << "WinNetApp> ";
+	}
+	else
+	{
+		cout << "WinNetApp\\" << activeService->getName() << "> ";
+	}
 	getline(cin, input);
 
 	if(input.find("shutdown") == 0)
 	{
 		shutdown = true;
 	}
+	else
+	{
+		iter = services.find(input);
+		if(iter == services.end())
+		{
+			cout << "Service '" << input << "' not found \n";
+		}
+		else
+		{
+			activeService = (*iter).second;
+		}
+	}
 }
 
-
-UserIoHandler::~UserIoHandler()
-{
-}
 

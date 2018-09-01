@@ -10,21 +10,27 @@
 
 #include <string>
 #include "UserIoHandler.h"
+#include "Ping.h"
 
 using namespace std;
 
 class AppManager {
 public:
 	AppManager();
-	virtual ~AppManager();
+	~AppManager();
 
 	int getErrorState();
 	void go();
+
+
 
 private:
 	int errorState;
 	UserIoHandler *userIoHandler;
 	string version;
+
+	// Services
+	Ping *ping;
 };
 
 #endif /* APPMANAGER_H_ */

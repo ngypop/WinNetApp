@@ -8,20 +8,25 @@
 #ifndef USERIOHANDLER_H_
 #define USERIOHANDLER_H_
 
+#include <map>
+#include "Service.h"
+
 using namespace std;
 
 class UserIoHandler
 {
 public:
 	UserIoHandler();
-	virtual ~UserIoHandler();
+	void registerService(Service *_service);
 	int launch();
 
 private:
 	void userIoThread();
 	void printWelcomeMessage();
-	void getNextCommand();
+	void handleCommandPrompt();
 	bool shutdown;
+	map<string, Service*> services;
+	Service* activeService;
 };
 
 #endif /* USERIOHANDLER_H_ */

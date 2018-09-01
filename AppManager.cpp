@@ -8,23 +8,16 @@
 #include <iostream>
 #include "AppManager.h"
 #include "UserIoHandler.h"
-#include "DijkstraTest.h"
 
 using namespace std;
 
 int main()
 {
-	DijkstraTest dijTest;
+	AppManager appManager;
 
-	dijTest.testDijkstra();
+	appManager.go();
 
-
-//	AppManager appManager;
-//
-//	appManager.go();
-//
-//	return appManager.getErrorState();
-	return 1;
+	return appManager.getErrorState();
 }
 
 
@@ -32,7 +25,13 @@ AppManager::AppManager()
 {
 	version ="0.1";
 	errorState    = -1;
+
+	// Create user Io Handler
 	userIoHandler = new UserIoHandler();
+
+	// Create and register services
+    ping = new Ping("ping");
+    userIoHandler->registerService(ping);
 }
 
 void AppManager::go()
