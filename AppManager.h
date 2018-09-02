@@ -23,7 +23,6 @@ public:
 	void go();
 
 
-
 private:
 	int errorState;
 	UserIoHandler *userIoHandler;

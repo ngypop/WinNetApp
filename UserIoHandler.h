@@ -24,6 +24,10 @@ private:
 	void userIoThread();
 	void printWelcomeMessage();
 	void handleCommandPrompt();
+	void handleIoHandlerInput();
+	void handleServiceInput();
+	void printHelpText();
+
 	bool shutdown;
 	map<string, Service*> services;
 	Service* activeService;

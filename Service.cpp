@@ -12,3 +12,8 @@ string Service::getName()
 	return name;
 }
 
+string Service::getDescription()
+{
+	return description;
+}
+

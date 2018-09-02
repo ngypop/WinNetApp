@@ -9,6 +9,7 @@
 #include "AppManager.h"
 #include "UserIoHandler.h"
 
+
 using namespace std;
 
 int main()
@@ -23,20 +24,20 @@ int main()
 
 AppManager::AppManager()
 {
-	version ="0.1";
-	errorState    = -1;
+	version    = "0.1";
+	errorState = -1;
 
 	// Create user Io Handler
 	userIoHandler = new UserIoHandler();
 
 	// Create and register services
-    ping = new Ping("ping");
+    ping = new Ping();
     userIoHandler->registerService(ping);
 }
 
 void AppManager::go()
 {
-	cout << "WinNetApp version " << version << "\n";
+	cout << "\nWinNetApp version " << version << "\n\n";
 	errorState = userIoHandler->launch(); // Returns when appManager is finished
 	cout << "Bye.\n";
 }
