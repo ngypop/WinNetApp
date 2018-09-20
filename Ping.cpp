@@ -16,6 +16,7 @@ Ping::Ping()
 {
 	name        = "ping";
 	description = "Ping a target host with ICMP messages";
+	pingStm.start();
 }
 
 void Ping::executeCommand(string _command)
@@ -26,7 +27,11 @@ void Ping::executeCommand(string _command)
 	}
 	else if(_command.find("init") == 0)
 	{
-		initialize();
+		pingStm.process_event(e_init(this));
+	}
+	else if(_command.find("uninit") == 0)
+	{
+		pingStm.process_event(e_uninit());
 	}
 }
 
@@ -35,7 +40,7 @@ void Ping::printHelpText()
 	cout << "Available commands: \n";
 	cout << "'help'   - Display this help message \n";
 	cout << "'init'   - Initialize Ping \n";
-	cout << "'deinit' - Deinitialize Ping (Releases all resources) \n";
+	cout << "'uninit' - Uninitialize Ping (Releases all network resources) \n";
 }
 
 int Ping::initialize()
