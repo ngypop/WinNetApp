@@ -15,8 +15,8 @@
 #include <winsock2.h>
 #include "Service.h"
 
-namespace msm = boost::msm;
-namespace mpl = boost::mpl;
+namespace msm = boost::msm; // Meta state machine
+namespace mpl = boost::mpl; // Meta programming library
 
 
 
@@ -29,9 +29,14 @@ public:
 
 private:
 	void printHelpText();
-	int initialize();
+	void initialize();
+	void uninitialize();
 
 	SOCKET pingSocket;
+
+	unsigned int ttl;
+	string targetName;
+	unsigned int recvTimeout;
 
 	///////////////////////////////
 	// State chart definitions   //
@@ -41,14 +46,27 @@ private:
 	struct e_init
 	{
 		e_init(Ping *_ping)
-		            : ping(_ping)
-		        {}
-
-		        Ping* ping;
+		: ping(_ping)
+		{}
+		Ping* ping;
+	};
+	struct e_setTTL
+	{
+		e_setTTL(unsigned char _TTL)
+		: TTL (_TTL)
+		{}
+		unsigned char TTL;
 	};
 	struct e_startPing {};
 	struct e_stopPing {};
-	struct e_uninit {};
+	struct e_uninit
+	{
+		e_uninit(Ping *_ping)
+		: ping(_ping)
+		{}
+
+		Ping* ping;
+	};
 
 	// Define the FSM structure for our Ping state machine
 	struct STM_Ping : public msm::front::state_machine_def<STM_Ping>
@@ -73,21 +91,43 @@ private:
 			template <class Event,class FSM>
 			void on_exit(Event const&,FSM& ) {std::cout << "leaving: ST_Uninit" << std::endl;}
 		};
-		struct ST_Idle : public msm::front::state<>
-		{
-			template <class Event,class FSM>
-			void on_entry(Event const& ,FSM&) {std::cout << "entering: ST_Idle" << std::endl;}
-			template <class Event,class FSM>
-			void on_exit(Event const&,FSM& ) {std::cout << "leaving: ST_Idle" << std::endl;}
-		};
-		struct ST_Pinging : public msm::front::state<>
-		{
-			template <class Event,class FSM>
-			void on_entry(Event const& ,FSM&) {std::cout << "entering: ST_Pinging" << std::endl;}
-			template <class Event,class FSM>
-			void on_exit(Event const&,FSM& ) {std::cout << "leaving: ST_Pinging" << std::endl;}
-		};
 
+		// Sub state machine STM_Initialised
+		struct STM_Initialised : public msm::front::state_machine_def<STM_Initialised>
+		{
+			struct ST_Idle : public msm::front::state<>
+			{
+				template <class Event,class FSM>
+				void on_entry(Event const& ,FSM&) {std::cout << "entering: ST_Idle" << std::endl;}
+				template <class Event,class FSM>
+				void on_exit(Event const&,FSM& ) {std::cout << "leaving: ST_Idle" << std::endl;}
+			};
+
+			struct ST_Pinging : public msm::front::state<>
+			{
+				template <class Event,class FSM>
+				void on_entry(Event const& ,FSM&) {std::cout << "entering: ST_Pinging" << std::endl;}
+				template <class Event,class FSM>
+				void on_exit(Event const&,FSM& ) {std::cout << "leaving: ST_Pinging" << std::endl;}
+			};
+
+			// The initial state of the Initialised SM
+			typedef ST_Idle initial_state;
+
+
+
+			typedef STM_Initialised i; // Makes transition table cleaner
+
+			struct transition_table : mpl::vector<
+			//      Start       Event        Target      Action                      Guard
+			//     +-----------+------------+-----------+---------------------------+----------------------------+
+			_row < ST_Idle,     e_startPing, ST_Pinging                                                          >,
+			_row < ST_Pinging,  e_stopPing,  ST_Idle                                                             >
+			> {};
+	}; // struct STM_Initialised
+
+		// Define the back-end of our sub state machine
+		typedef msm::back::state_machine<STM_Initialised> t_initialisedStm;
 
 		// The initial state of the Ping SM
 		typedef ST_Uninit initial_state;
@@ -98,7 +138,11 @@ private:
 			std::cout << "a_initialize() called\n";
 			evt.ping->initialize();
 		}
-		void a_uninitialize(e_uninit const&)    { std::cout << "uninitialize() called\n"; }
+		void a_uninitialize(e_uninit const& evt)
+		{
+			std::cout << "a_uninitialize() called\n";
+			evt.ping->uninitialize();
+		}
 
 
 		// Guard conditions
@@ -110,10 +154,9 @@ private:
 		struct transition_table : mpl::vector<
 		//      Start       Event        Target      Action                      Guard
 		//     +-----------+------------+-----------+---------------------------+----------------------------+
-		a_row< ST_Uninit,   e_init,      ST_Idle,    &p::a_initialize                                          >,
-		_row < ST_Idle,     e_startPing, ST_Pinging                                                          >,
-		_row < ST_Pinging,  e_stopPing,  ST_Idle                                                             >,
-		a_row< ST_Idle,     e_uninit,    ST_Uninit,  &p::a_uninitialize                                                        >
+		a_row< ST_Uninit, e_init,      t_initialisedStm,    &p::a_initialize                                    >,
+		a_row< t_initialisedStm,   e_uninit,    ST_Uninit,  &p::a_uninitialize                                  >
+
 		> {};
 
 		// Replaces the default no-transition response.
