@@ -53,18 +53,60 @@ void Ping::executeCommand(string _command)
 	{
 		pingStm.process_event(e_uninit(this));
 	}
-	else if(_command.find("setTTL") == 0)
+	else if(_command.find("setTarget") == 0)
 	{
-		int value = atoi(substrings[1].c_str());
-
-		if((value > 0) && (value < 256))
+		if(substrings.size() > 1)
 		{
-			pingStm.process_event(e_setTTL(value));
+			pingStm.process_event(e_setTarget(this, substrings[1]));
 		}
 		else
 		{
-			cout << "Bad value for TTL: " << substrings[1] << endl;
+			cout << "No target specified" << endl;
 		}
+	}
+	else if(_command.find("setTTL") == 0)
+	{
+		if(substrings.size() > 1)
+		{
+			int value = atoi(substrings[1].c_str());
+
+			if((value > 0) && (value < 256))
+			{
+				pingStm.process_event(e_setTTL(this, value));
+			}
+			else
+			{
+				cout << "Bad value for TTL: " << substrings[1] << endl;
+			}
+		}
+		else
+		{
+			cout << "No value specified" << endl;
+		}
+	}
+	else if(_command.find("setTimeout") == 0)
+	{
+		if(substrings.size() > 1)
+		{
+			int value = atoi(substrings[1].c_str());
+
+			if(value > 0)
+			{
+				pingStm.process_event(e_setTimeout(this, value));
+			}
+			else
+			{
+				cout << "Bad value for timeout: " << substrings[1] << endl;
+			}
+		}
+		else
+		{
+			cout << "No value specified" << endl;
+		}
+	}
+	else
+	{
+		cout << "Command '" << _command << "' not availble" << endl;
 	}
 }
 
@@ -74,8 +116,8 @@ void Ping::printHelpText()
 	cout << "'help'               - Display this help message " << endl;
 	cout << "'init'               - Initialize Ping " << endl;
 	cout << "'uninit'             - Uninitialize Ping (Releases all network resources) " << endl;
-	cout << "'setTTL TTL'         - Set TTL in milliseconds. Current value: " << ttl << endl;
 	cout << "'setTarget target'   - Set target address. Current value: " << targetName << endl;
+	cout << "'setTTL TTL'         - Set TTL in milliseconds. Current value: " << ttl << endl;
 	cout << "'setTimeout timeout' - Set response timeout in milliseconds. Current value: " << recvTimeout << endl;
 }
 
@@ -111,22 +153,8 @@ void Ping::initialize()
 	cout << "Created" << endl;
 
 	// Configure socket
-	// Set the TTL value associated with IP multicast traffic on the socket.
-	cout << "Setting socket option TTL to " << ttl << "...";
-	if (setsockopt(pingSocket, IPPROTO_IP, IP_TTL, (const char*)&ttl,	sizeof(ttl)) == SOCKET_ERROR)
-	{
-		cout << "Failed. Error code: " << WSAGetLastError() << endl;
-		return;
-	}
-	cout << "set" << endl;
-
-	cout << "Setting socket option receive timeout to " << recvTimeout << "ms...";
-	if (setsockopt(pingSocket, SOL_SOCKET, SO_RCVTIMEO, (const char*)&recvTimeout, sizeof(recvTimeout)) == SOCKET_ERROR)
-	{
-		cout << "Failed. Error code: " << WSAGetLastError() << endl;
-		return;
-	}
-	cout << "set" << endl;
+	setTTL(ttl);
+	setRecvTimeout(recvTimeout);
 }
 
 void Ping::uninitialize()
@@ -154,6 +182,68 @@ void Ping::uninitialize()
 	}
 }
 
+void Ping::setTarget(string _target)
+{
+
+	ADDRINFOA *hostAddr = NULL;
+	bool success = false;
+
+	// Turn first passed parameter into an IP address to ping
+	unsigned int addr = inet_addr(_target.c_str());
+
+	if (addr != INADDR_NONE) {
+		// It was a dotted quad number, so save result
+		dest.sin_addr.s_addr = addr;
+		dest.sin_family = AF_INET;
+		success = true;
+	}
+	else
+	{
+		// It was not in dotted quad form, so try and look it up
+		if(getaddrinfo(_target.c_str(), 0, NULL, &hostAddr) == SOCKET_ERROR)
+		{
+			cout << "getaddrinfo() failed. Error code: " << WSAGetLastError() << endl;
+		}
+		else if (hostAddr != 0)
+		{
+			// Found an address for that host, so save it
+			memcpy(&dest, hostAddr->ai_addr, sizeof(SOCKADDR));
+			cout << "Found address: " << inet_ntoa(dest.sin_addr) << endl;
+			success = true;
+		}
+		else
+		{
+			// Not a recognized hostname either!
+			cout << "Failed to interpret host address: " << _target << endl;
+		}
+	}
+	if(success)
+	{
+		targetName = _target;
+	}
+}
+
+void Ping::setTTL(unsigned int _ttl)
+{
+	// Set the TTL value associated with IP traffic on the socket.
+	cout << "Setting socket option TTL to " << _ttl << "...";
+	if (setsockopt(pingSocket, IPPROTO_IP, IP_TTL, (const char*)&_ttl,	sizeof(_ttl)) == SOCKET_ERROR)
+	{
+		cout << "Failed. Error code: " << WSAGetLastError() << endl;
+		return;
+	}
+	cout << "set" << endl;
+}
 
 
+void Ping::setRecvTimeout(unsigned int _recvTimeout)
+{
+	cout << "Setting socket option receive timeout to " << _recvTimeout << "ms...";
+	if (setsockopt(pingSocket, SOL_SOCKET, SO_RCVTIMEO, (const char*)&_recvTimeout, sizeof(_recvTimeout)) == SOCKET_ERROR)
+	{
+		cout << "Failed. Error code: " << WSAGetLastError() << endl;
+		return;
+	}
+	cout << "set" << endl;
+}
 

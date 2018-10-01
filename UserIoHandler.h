@@ -27,6 +27,7 @@ private:
 	void handleIoHandlerInput();
 	void handleServiceInput();
 	void printHelpText();
+	void printUniversalCommands();
 
 	bool shutdown;
 	map<string, Service*> services;

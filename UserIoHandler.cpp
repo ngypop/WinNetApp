@@ -27,7 +27,6 @@ void UserIoHandler::userIoThread()
 	while(!shutdown)
 	{
 		handleCommandPrompt();
-
 	}
 }
 
@@ -72,7 +71,7 @@ void UserIoHandler::handleIoHandlerInput()
 		iter = services.find(input);
 		if(iter == services.end())
 		{
-			cout << "Command or service '" << input << "' not availble \n";
+			cout << "Command or service '" << input << "' not availble" << endl;
 		}
 		else
 		{
@@ -92,9 +91,17 @@ void UserIoHandler::handleServiceInput()
 	{
 		activeService = 0;
 	}
+	else if(input.find("shutdown") == 0)
+	{
+		shutdown = true;
+	}
 	else
 	{
 		activeService->executeCommand(input);
+		if(input.find("help") == 0)
+		{
+			printUniversalCommands();
+		}
 	}
 }
 
@@ -102,18 +109,25 @@ void UserIoHandler::printHelpText()
 {
 	map<string, Service*>::iterator iter;
 
-	cout << "Available commands: \n";
-	cout << "'help'         - display this help message \n";
-	cout << "'return'       - exit service submenu and come back here.\n";
-	cout << "'shutdown'     - terminate WinNetApp \n";
-	cout << "[service name] - enter service submenu\n";
-	cout << "\n";
-	cout << "Available services: \n";
+	cout << "Available commands:" << endl;
+	cout << "'help'               - display this help message" << endl;
+	cout << "[service name]       - enter service submenu" << endl;
+
+	printUniversalCommands();
+
+	cout << endl;
+	cout << "Available services:" << endl;
 
 	for(iter = services.begin(); iter != services.end(); iter++)
 	{
-		cout <<"'" << (*iter).second->getName() <<"':\t" << (*iter).second->getDescription() << "\n";
+		cout <<"'" << (*iter).second->getName() <<"':\t" << (*iter).second->getDescription() << endl;
 	}
+}
+
+void UserIoHandler::printUniversalCommands()
+{
+	cout << "'return'             - exit service submenu and go back to main menu." << endl;
+	cout << "'shutdown'           - terminate WinNetApp" << endl;
 }
 
 

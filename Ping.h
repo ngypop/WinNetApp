@@ -31,12 +31,17 @@ private:
 	void printHelpText();
 	void initialize();
 	void uninitialize();
+	void setTarget(string _target);
+	void setRecvTimeout(unsigned int _recvTimeout);
+	void setTTL(unsigned int _ttl);
 
 	SOCKET pingSocket;
 
+
+	struct sockaddr_in source, dest;
 	unsigned int ttl;
-	string targetName;
 	unsigned int recvTimeout;
+	string targetName;
 
 	///////////////////////////////
 	// State chart definitions   //
@@ -50,12 +55,29 @@ private:
 		{}
 		Ping* ping;
 	};
+	struct e_setTarget
+	{
+		e_setTarget(Ping *_ping, string _target)
+		: ping(_ping), target(_target)
+		{}
+		Ping* ping;
+		string target;
+	};
 	struct e_setTTL
 	{
-		e_setTTL(unsigned char _TTL)
-		: TTL (_TTL)
+		e_setTTL(Ping *_ping, unsigned char _TTL)
+		: ping(_ping), TTL(_TTL)
 		{}
+		Ping* ping;
 		unsigned char TTL;
+	};
+	struct e_setTimeout
+	{
+		e_setTimeout(Ping *_ping, unsigned int _timeout)
+		: ping(_ping), timeout(_timeout)
+		{}
+		Ping* ping;
+		unsigned int timeout;
 	};
 	struct e_startPing {};
 	struct e_stopPing {};
@@ -143,6 +165,21 @@ private:
 			std::cout << "a_uninitialize() called\n";
 			evt.ping->uninitialize();
 		}
+		void a_setTarget(e_setTarget const& evt)
+		{
+			std::cout << "a_setTarget() called\n";
+			evt.ping->setTarget(evt.target);
+		}
+		void a_setTTL(e_setTTL const& evt)
+		{
+			std::cout << "a_setTTL() called\n";
+			evt.ping->setTTL(evt.TTL);
+		}
+		void a_setTimeout(e_setTimeout const& evt)
+		{
+			std::cout << "a_setTimeout() called\n";
+			evt.ping->setRecvTimeout(evt.timeout);
+		}
 
 
 		// Guard conditions
@@ -152,10 +189,13 @@ private:
 		typedef STM_Ping p; // Makes transition table cleaner
 
 		struct transition_table : mpl::vector<
-		//      Start       Event        Target      Action                      Guard
-		//     +-----------+------------+-----------+---------------------------+----------------------------+
-		a_row< ST_Uninit, e_init,      t_initialisedStm,    &p::a_initialize                                    >,
-		a_row< t_initialisedStm,   e_uninit,    ST_Uninit,  &p::a_uninitialize                                  >
+		//      Start             Event          Target            Action                      Guard
+		//     +-----------------+--------------+-----------------+---------------------------+----------------------------+
+		a_row< ST_Uninit,         e_init,        t_initialisedStm,  &p::a_initialize                                      >,
+		a_row< t_initialisedStm,  e_uninit,      ST_Uninit,         &p::a_uninitialize                                    >,
+		a_irow<t_initialisedStm,  e_setTarget,                      &p::a_setTarget                                       >,
+		a_irow<t_initialisedStm,  e_setTTL,                         &p::a_setTTL                                          >,
+		a_irow<t_initialisedStm,  e_setTimeout,                     &p::a_setTimeout                                      >
 
 		> {};
 
