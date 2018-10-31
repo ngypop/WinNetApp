@@ -9,8 +9,9 @@
 #define APPMANAGER_H_
 
 #include <string>
+
+#include "PingLogic.h"
 #include "UserIoHandler.h"
-#include "Ping.h"
 
 using namespace std;
 
