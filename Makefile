@@ -9,6 +9,9 @@ DISTDIR := dist
 # Executable
 EXECUTABLE := $(addprefix $(DISTDIR)/, winnetapp)
 
+# Default target
+build: $(EXECUTABLE)
+
 # Source files
 SRCS := src/main.cpp
 
@@ -24,9 +27,6 @@ OBJS := $(addprefix $(BUILDDIR)/,$(SRCS:.cpp=.o))
 $(EXECUTABLE): $(OBJS)
 	mkdir -p $(@D)
 	$(CC) $(CFLAGS) $^ -o $@
-
-# Default target
-all: $(EXECUTABLE)
 
 # Run the executable
 run: $(EXECUTABLE)
