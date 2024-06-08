@@ -3,6 +3,7 @@ CXX := x86_64-w64-mingw32-g++
 
 # Compiler flags
 CFLAGS := -Wall -Wextra -std=c++11
+LDFLAGS := -static
 BUILDDIR := build
 DISTDIR := dist
 
@@ -26,7 +27,7 @@ OBJS := $(addprefix $(BUILDDIR)/,$(SRCS:.cpp=.o))
 # Link object files into executable
 $(EXECUTABLE): $(OBJS)
 	mkdir -p $(@D)
-	$(CXX) $(CFLAGS) $^ -o $@
+	$(CXX) $(CFLAGS) $(LDFLAGS) $^ -o $@
 
 # Run the executable
 run: $(EXECUTABLE)
